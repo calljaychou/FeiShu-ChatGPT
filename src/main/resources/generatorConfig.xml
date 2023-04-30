@@ -1,0 +1,23 @@
+<!DOCTYPE generatorConfiguration PUBLIC
+        "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+
+    <classPathEntry
+            location="/Users/mac-z/.m2/repository/mysql/mysql-connector-java/8.0.19/mysql-connector-java-8.0.19.jar"/>
+
+    <context id="kotlin" targetRuntime="MyBatis3Kotlin">
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
+                        connectionURL="jdbc:mysql://124.222.149.209:3306/feishuchatgpt?characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=GMT%2B8"
+                        userId="feishuchatgpt"
+                        password="fKeSRiyGfhapHJ6R"/>
+
+        <javaModelGenerator targetPackage="com.zerodstocking.feishuchatgpt.dal.model" targetProject="src/main/kotlin"/>
+        <javaClientGenerator targetPackage="com.zerodstocking.feishuchatgpt.dal.mapper" targetProject="src/main/kotlin"/>
+
+        <table tableName="operational_logs">
+            <generatedKey column="id" sqlStatement="JDBC" identity="true"/>
+        </table>
+
+    </context>
+</generatorConfiguration>
