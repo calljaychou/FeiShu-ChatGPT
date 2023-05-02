@@ -28,7 +28,10 @@ class RobotAPI(private val feishu: FeiShuInvoke) {
      */
     fun getRobot(): RobotInfo {
         val valueType = object : TypeReference<RobotInfoResponse>() {}
-        val ret = feishu.sendRequest(RobotInfoRequest(), valueType)
+        val robotInfoRequest = RobotInfoRequest()
+        val ret = feishu.sendRequest(robotInfoRequest, valueType) {
+            robotInfoRequest.request.url
+        }
         return if (ResultCode.SUCCESS.code == ret.code) {
             ret.bot!!
         } else {
@@ -43,8 +46,9 @@ class RobotAPI(private val feishu: FeiShuInvoke) {
      */
     fun sendMessages(request: SendMessagesRequest): MessagesInfo {
         val valueType = object : TypeReference<MessagesResponse>() {}
-        request.request.url = request.request.url.replace("$1", request.receiveIdType!!)
-        val ret = feishu.sendRequest(request, valueType)
+        val ret = feishu.sendRequest(request, valueType) {
+            request.request.url.replace("$1", request.receiveIdType!!)
+        }
         return if (ResultCode.SUCCESS.code == ret.code) {
             ret.data!!
         } else {
@@ -59,8 +63,9 @@ class RobotAPI(private val feishu: FeiShuInvoke) {
      */
     fun replyMessages(request: ReplyMessagesRequest): MessagesInfo {
         val valueType = object : TypeReference<MessagesResponse>() {}
-        request.request.url = request.request.url.replace("$1", request.messageId!!)
-        val ret = feishu.sendRequest(request, valueType)
+        val ret = feishu.sendRequest(request, valueType) {
+            request.request.url.replace("$1", request.messageId!!)
+        }
         return if (ResultCode.SUCCESS.code == ret.code) {
             ret.data!!
         } else {

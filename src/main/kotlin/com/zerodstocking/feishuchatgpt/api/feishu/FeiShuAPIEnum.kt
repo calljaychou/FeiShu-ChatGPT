@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod
  * @date 2023/4/19 22:08
  */
 enum class FeiShuAPIEnum(
-    var url: String,
+    val url: String,
     val tokenType: TokenType?,
     val method: HttpMethod
 ) {

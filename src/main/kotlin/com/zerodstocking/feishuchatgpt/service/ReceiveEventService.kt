@@ -57,7 +57,7 @@ class ReceiveEventService(
             ChatType.P2P.value -> {
                 // 单聊at自己添加提示语
                 if (isMentionMessage && !isAtRoBotMessage) {
-                    robotReplyMessage(info, "请稍稍等,下次记得圈晴天就好啦~~😊😊", false, MsgType.TEXT, false)
+                    robotReplyMessage(info, "请稍等,下次记得圈晴天就好啦~~😊😊", false, MsgType.TEXT, false)
                 }
 
                 var replyContent = chatBeforeFilter.second

@@ -8,6 +8,7 @@ import com.zerodstocking.feishuchatgpt.common.logger
 import java.net.URI
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import org.apache.poi.ss.formula.functions.T
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -35,14 +36,14 @@ class FeiShuInvoke(
      * @param [responseType] 响应类型
      * @return [T]
      */
-    fun <T> sendRequest(param: FeiShuApi, responseType: TypeReference<T>): T {
+    fun <T> sendRequest(param: FeiShuApi, responseType: TypeReference<T>, url: () -> String): T {
         val l = Instant.now().toEpochMilli()
 
-        val (url, httpEntity) = doRequest(param)
+        val (uri, httpEntity) = doRequest(param, url.invoke())
         logger().info("请求飞书接口:$url, request: ${jsonMapper().writeValueAsString(httpEntity)}")
         // 设定请求参数
         val resp: ResponseEntity<ByteArray> = restTemplate.exchange(
-            url, param.request.method, httpEntity, ByteArray::class.java
+            uri, param.request.method, httpEntity, ByteArray::class.java
         )
         val responseString = resp.body?.toString(Charsets.UTF_8) ?: ""
         logger().info(
@@ -65,7 +66,7 @@ class FeiShuInvoke(
      * @param [param] 参数
      * @return [Pair<URI, HttpEntity<*>>]
      */
-    private fun doRequest(param: FeiShuApi): Pair<URI, HttpEntity<*>> {
+    private fun doRequest(param: FeiShuApi, url: String): Pair<URI, HttpEntity<*>> {
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON_UTF8
 
@@ -82,12 +83,15 @@ class FeiShuInvoke(
             jsonMapper().writeValueAsString(param),
             object : TypeReference<HashMap<String, Any>>() {}
         )
-        return Pair(URI(environment.baseURL + param.request.url), HttpEntity(body, headers))
+        return Pair(URI(environment.baseURL + url), HttpEntity(body, headers))
     }
 
     private fun getTenantAccessToken() = getAccessTokenCache("TENANT_ACCESS_TOKEN") ?: kotlin.run {
         val valueType = object : TypeReference<TenantTokenResult>() {}
-        val ret = sendRequest(TenantTokenRequest(environment.appId, environment.appSecret), valueType)
+        val tenantTokenRequest = TenantTokenRequest(environment.appId, environment.appSecret)
+        val ret = sendRequest(tenantTokenRequest, valueType) {
+            tenantTokenRequest.request.url
+        }
         return if (ResultCode.SUCCESS.code == ret.code) {
             setAccessTokenCache("TENANT_ACCESS_TOKEN", ret.tenantAccessToken!!, ret.expire!!)
             ret.tenantAccessToken!!
@@ -98,7 +102,10 @@ class FeiShuInvoke(
 
     private fun getAppAccessToken() = getAccessTokenCache("APP_ACCESS_TOKEN") ?: kotlin.run {
         val valueType = object : TypeReference<AppTokenResult>() {}
-        val ret = sendRequest(AppTokenRequest(environment.appId, environment.appSecret), valueType)
+        val appTokenRequest = AppTokenRequest(environment.appId, environment.appSecret)
+        val ret = sendRequest(appTokenRequest, valueType) {
+            appTokenRequest.request.url
+        }
         return if (ResultCode.SUCCESS.code == ret.code) {
             setAccessTokenCache("APP_ACCESS_TOKEN", ret.appAccessToken!!, ret.expire!!)
             ret.appAccessToken!!
