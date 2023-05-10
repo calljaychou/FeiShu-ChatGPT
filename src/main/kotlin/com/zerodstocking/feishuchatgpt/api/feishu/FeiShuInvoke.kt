@@ -8,7 +8,6 @@ import com.zerodstocking.feishuchatgpt.common.logger
 import java.net.URI
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-import org.apache.poi.ss.formula.functions.T
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -52,7 +51,7 @@ class FeiShuInvoke(
             }"
         )
         if (resp.statusCode == HttpStatus.OK) {
-            return responseString.let { jsonMapper().readValue<T>(it, responseType) }
+            return responseString.let { jsonMapper().readValue(it, responseType) }
         } else {
             throw BizException(
                 BizException.SYSTEM_FAILED, "请求飞书接口异常， status: ${resp.statusCode}, response: $responseString"
@@ -68,7 +67,7 @@ class FeiShuInvoke(
      */
     private fun doRequest(param: FeiShuApi, url: String): Pair<URI, HttpEntity<*>> {
         val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON_UTF8
+        headers.contentType = MediaType.APPLICATION_JSON
 
         param.request.tokenType?.run {
             headers["Authorization"] = "Bearer ${

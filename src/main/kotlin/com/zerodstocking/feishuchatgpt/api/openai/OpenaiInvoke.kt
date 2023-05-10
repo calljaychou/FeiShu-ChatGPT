@@ -6,14 +6,17 @@ import com.zerodstocking.feishuchatgpt.common.exception.jsonMapper
 import com.zerodstocking.feishuchatgpt.common.logger
 import java.net.URI
 import java.time.Instant
-import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * @author JayCHou <a href="calljaychou@qq.com">Email</a>
@@ -24,16 +27,31 @@ import org.springframework.web.client.RestTemplate
 class OpenaiInvoke(
     val openaiEnvironment: OpenaiEnvironment,
     val restTemplate: RestTemplate,
-    val redisTemplate: StringRedisTemplate
+    val webClient: WebClient
 ) {
+
+    fun sendRequest(param: API): Flux<String> {
+        val (url, httpEntity) = doRequest(param)
+        logger().info("请求openai接口:$url, request: ${jsonMapper().writeValueAsString(httpEntity)}")
+
+        return webClient.post()
+            .uri(url)
+            .headers { httpEntity.headers }
+            .bodyValue(httpEntity.body!!)
+            .retrieve().bodyToFlux(String::class.java)
+            .onErrorResume(WebClientResponseException::class.java) {
+                throw BizException(BizException.SYSTEM_FAILED, "请求openai接口异常， status: ${it.statusCode}")
+            }
+    }
 
     fun <T> sendRequest(param: API, responseType: TypeReference<T>): T {
         val l = Instant.now().toEpochMilli()
 
         val (url, httpEntity) = doRequest(param)
         logger().info("请求openai接口:$url, request: ${jsonMapper().writeValueAsString(httpEntity)}")
+
         // 设定请求参数
-        val resp: ResponseEntity<ByteArray> = restTemplate.exchange(
+        val resp = restTemplate.exchange(
             url, param.request.method, httpEntity, ByteArray::class.java
         )
         val responseString = resp.body?.toString(Charsets.UTF_8) ?: ""
@@ -43,10 +61,10 @@ class OpenaiInvoke(
             }"
         )
         if (resp.statusCode == HttpStatus.OK) {
-            return responseString.let { jsonMapper().readValue<T>(it, responseType) }
+            return responseString.let { jsonMapper().readValue(it, responseType) }
         } else {
             throw BizException(
-                BizException.SYSTEM_FAILED, "请求openai接口异常， status: ${resp.statusCode}, response: $responseString"
+                BizException.SYSTEM_FAILED, "请求openai接口异常， status: ${resp.statusCode}"
             )
         }
     }
@@ -58,7 +76,7 @@ class OpenaiInvoke(
      */
     private fun doRequest(param: API): Pair<URI, HttpEntity<*>> {
         val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON_UTF8
+        headers.contentType = MediaType.APPLICATION_JSON
         headers["Authorization"] = "Bearer ${openaiEnvironment.apiKey}"
         headers["OpenAI-Organization"] = openaiEnvironment.organizationId
 

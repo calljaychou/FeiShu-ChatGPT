@@ -4,10 +4,12 @@ import com.zerodstocking.feishuchatgpt.api.feishu.robot.RobotAPI
 import com.zerodstocking.feishuchatgpt.api.openai.OpenaiAPI
 import com.zerodstocking.feishuchatgpt.common.exception.jsonMapper
 import com.zerodstocking.feishuchatgpt.common.logger
+import com.zerodstocking.feishuchatgpt.service.ReceiveEventService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+
 
 /**
  * @author JayCHou <a href="calljaychou@qq.com">Email</a>
@@ -24,6 +26,9 @@ class TestController {
     @Autowired
     lateinit var robotAPI: RobotAPI
 
+    @Autowired
+    lateinit var receiveEventService: ReceiveEventService
+
     val log = logger()
 
     @GetMapping("/ping")
@@ -35,18 +40,18 @@ class TestController {
         log.info("robot:{}", jsonMapper().writeValueAsString(robot))
     }
 
-
-    @GetMapping("/openai")
-    fun hello() {
-//        val listModels = openaiAPI.listModels()
-//        logger().info("listModels:{}", jsonMapper().writeValueAsString(listModels))
-
-//        val chatInfo = openaiAPI.chat(ChatRequest(messages = arrayListOf(ChatRequest.MessageInfo().apply {
-//                content = "你是谁"
-//            })))
-//        logger().info("chatInfo:{}", jsonMapper().writeValueAsString(chatInfo))
-
+    @GetMapping("/chat")
+    fun chat() {
+        val chat = openaiAPI.chat("给我一份300字的介绍,我叫jaychou")
+        logger().info("openai:{}", jsonMapper().writeValueAsString(chat))
     }
+
+    @GetMapping("/chatStream")
+    fun chatStream() {
+        val chat = openaiAPI.chatStream("给我一份300字的介绍,我叫jaychou")
+        chat.subscribe { println(it) }
+    }
+
 
 
 }

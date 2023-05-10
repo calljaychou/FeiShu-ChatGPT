@@ -29,8 +29,7 @@ class ReceiveEventService(
 ) : EventService {
 
     override fun handler(body: String) {
-        val valueType = object : TypeReference<FeiShuWebhookRequest<ReceiveEventInfo>>() {}
-        val info = jsonMapper().readValue<FeiShuWebhookRequest<ReceiveEventInfo>>(body, valueType)
+        val info = jsonMapper().readValue(body, object : TypeReference<FeiShuWebhookRequest<ReceiveEventInfo>>() {})
         val event = info.event!!
         val robotOpenId = "ou_b7c949d50f8a7ad02b62a0c47e729683"
 
@@ -48,10 +47,10 @@ class ReceiveEventService(
                 var replyContent = chatBeforeFilter.second
                 if (chatBeforeFilter.first) {
                     // 请求GPT
-                    replyContent = "我是GPT回复"
-                    //requestChat(event.eventMessage!!.content!!)
+                    replyContent = requestChat(jsonMapper().readTree(event.eventMessage!!.content!!)["text"].asText())
+                    requestChat(jsonMapper().readTree(event.eventMessage!!.content!!)["text"].asText())
                 }
-                robotReplyMessage(info, replyContent, true, MsgType.CARD)
+                robotReplyMessage(info, replyContent, true, MsgType.TEXT)
             }
 
             ChatType.P2P.value -> {
@@ -63,10 +62,9 @@ class ReceiveEventService(
                 var replyContent = chatBeforeFilter.second
                 if (chatBeforeFilter.first) {
                     // 请求GPT
-                    replyContent = "我是GPT回复"
-                    //requestChat(event.eventMessage!!.content!!)
+                    replyContent = requestChat(jsonMapper().readTree(event.eventMessage!!.content!!)["text"].asText())
                 }
-                robotReplyMessage(info, replyContent, isAtRoBotMessage, MsgType.CARD)
+                robotReplyMessage(info, replyContent, isAtRoBotMessage, MsgType.TEXT)
             }
         }
     }
@@ -108,6 +106,11 @@ class ReceiveEventService(
     }
 
 
+    /**
+     * 聊天前过滤器:只处理text对话
+     * @param [event] 事件
+     * @return [Pair<Boolean, String>]
+     */
     private fun chatBeforeFilter(event: ReceiveEventInfo): Pair<Boolean, String> {
         val text = jsonMapper().readTree(event.eventMessage!!.content!!)["text"]?.asText()
         return if (!StringUtils.hasText(text)) {
@@ -117,11 +120,11 @@ class ReceiveEventService(
 
     /**
      * 请求聊天
-     * @param [body] 身体
+     * @param [content] 身体
      */
-    private fun requestChat(body: String) = try {
-        val chat = openai.chat(body)
-        chat.choices!![0].messages?.content ?: "晴天式无语!!😓😓"
+    private fun requestChat(content: String) = try {
+        val chat = openai.chat(content)
+        chat.choices!![0].message?.content ?: "晴天式无语!!😓😓"
     } catch (e: SocketTimeoutException) {
         "🤖️这个问题容我再想想,请等一等再来问我吧~~"
     } catch (e: ConnectTimeoutException) {

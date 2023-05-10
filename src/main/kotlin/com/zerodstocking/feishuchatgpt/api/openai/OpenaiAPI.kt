@@ -12,17 +12,24 @@ import org.springframework.stereotype.Service
 class OpenaiAPI(private val openai: OpenaiInvoke) {
 
     /**
-     * openai模型列表
-     */
-    fun listModels() = openai.sendRequest(ModelsRequest(), object : TypeReference<ModelsInfoResponse>() {})
-
-    /**
      * 聊天
      * @param [content] 内容
      * @return [ChatResponse]
      */
-    fun chat(content: String) = openai.sendRequest(ChatRequest(messages = arrayListOf(ChatRequest.MessageInfo().apply {
-        this.content = content
-    })), object : TypeReference<ChatResponse>() {})
+    fun chat(content: String) = openai.sendRequest(
+        ChatRequest(
+            messages = arrayListOf(ChatRequest.MessageInfo().apply {
+                this.content = content
+            })
+        ),
+        object : TypeReference<ChatResponse>() {}
+    )
+
+    fun chatStream(content: String) = openai.sendRequest(ChatRequest(
+        messages = arrayListOf(ChatRequest.MessageInfo().apply {
+            this.content = content
+        }),
+        stream = true
+    ))
 
 }

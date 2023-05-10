@@ -37,7 +37,7 @@ data class ChatRequest(
     ) : API(OpenaiAPIEnum.CHAT) {
     @NoArg
     data class MessageInfo(
-        val role: String = "user",
+        var role: String? = "user",
         var content: String? = null,
         var name: String? = null,
     )
@@ -55,7 +55,7 @@ data class ChatResponse(
     @NoArg
     data class ChoiceInfo(
         var index: Int? = null,
-        var messages: ChatRequest.MessageInfo? = null,
+        var message: ChatRequest.MessageInfo? = null,
         @JsonProperty("finish_reason")
         var finishReason: String? = null
     )

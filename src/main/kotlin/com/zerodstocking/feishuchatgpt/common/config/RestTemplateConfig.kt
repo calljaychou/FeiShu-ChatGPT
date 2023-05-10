@@ -24,8 +24,9 @@ class RestTemplateConfig {
 
     @Bean
     fun simpleClientHttpRequestFactory() = SimpleClientHttpRequestFactory().apply {
-        setReadTimeout(1000 *6 *5)
-        setConnectTimeout(1000 *6 *5)
+        setReadTimeout(1000 * 6 * 5)
+        setConnectTimeout(1000 * 6 * 5)
+
     }
 
 }
