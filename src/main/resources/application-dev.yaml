@@ -33,14 +33,13 @@ logging:
   config: classpath:logback-spring.xml
 
 feishu:
-  appId: cli_a4c0b83edb39100d
-  appSecret: miTcbeaAUagJ8MBhnBoO1VnCIyBEbj60
+  appId:
+  appSecret:
   baseURL: https://open.feishu.cn
-  encryptKey: GnWfzNgUbwhGhiuXP6DU6nsz5wbfvqMe
-  verificationToken: 4SCsnPX42TfgwZVqmkANvXt5asmENfMy
+  encryptKey:
+  verificationToken:
 
 openai:
   baseURL: https://api.openai.com
-  apiKey: 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
-  organizationId: org-MChwW0x7uRv9dBy2bL0mdZGx
-
+  apiKey:
+  organizationId:
