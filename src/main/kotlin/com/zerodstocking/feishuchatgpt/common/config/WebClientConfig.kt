@@ -45,11 +45,11 @@ class WebClientConfig {
                         conn.addHandlerLast(ReadTimeoutHandler(30))
                         conn.addHandlerLast(WriteTimeoutHandler(30))
                     }
-                tcp.proxy { proxy ->
-                    proxy.type(ProxyProvider.Proxy.HTTP)
-                        .host("https://127.0.0.1")
-                        .port(8080)
-                }
+//                tcp.proxy { proxy ->
+//                    proxy.type(ProxyProvider.Proxy.HTTP)
+//                        .host("127.0.0.1")
+//                        .port(8080)
+//                }
             }
         }
         return WebClient.builder()
